@@ -1,16 +1,10 @@
 <script setup lang="ts">
-import { RouterView, useRouter } from "vue-router";
-import { onBeforeMount, Transition } from "vue";
-// import "vue3-lottie/dist/style.css";
-onBeforeMount(() => useRouter().push("/Home"));
+import { RouterView } from "vue-router";
+import { Sheet } from "@/components/ui/sheet";
 </script>
 
 <template>
-  <div class="w-screen overflow-x-hidden h-screen bg-slate-50">
-    <RouterView v-slot="{ Component }">
-      <Transition name="router" :appear="true">
-        <component :is="Component" />
-      </Transition>
-    </RouterView>
-  </div>
+  <Sheet>
+    <RouterView />
+  </Sheet>
 </template>

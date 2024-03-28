@@ -1,106 +1,136 @@
 <script setup lang="ts">
 import { useI18n } from "vue-i18n";
-import { convertFileSrc } from "@tauri-apps/api/tauri";
 import UiPagination from "./ui/UiPagination.vue";
-import { Checkbox } from "./ui/checkbox";
-import type { productT } from "@/types";
-import UiIcon from "./ui/UiIcon.vue";
+import { FilePenLine, Trash2 } from "lucide-vue-next";
 import { store } from "@/store";
+import type { ProductT } from "@/schemas/products.schema";
+import { Badge } from "./ui/badge";
+import { cn } from "@/utils/shadcn";
+import { useUpdateRouteQueryParams } from "@/composables/useUpdateQuery";
+import {
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+} from "@/components/ui/hover-card";
+import { CalendarDays, Info } from "lucide-vue-next";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
-defineProps<{ products: productT[] }>();
+defineProps<{ products: ProductT[] }>();
 
-const { t } = useI18n();
+const { t, d } = useI18n();
+const { updateQueryParams } = useUpdateRouteQueryParams();
 
-const toggleThisProduct = (product: productT, name: string) => {
-  store.setters.updateStore({ key: "row", value: product });
+const toggleThisProduct = (product: ProductT, name: string) => {
+  updateQueryParams({
+    id: product.id,
+    name: product.name,
+    price: product.price,
+    description: product.description,
+    minQuantity: product.minQuantity,
+  });
   store.setters.updateStore({ key: "name", value: name });
   store.setters.updateStore({ key: "show", value: true });
-};
-
-const handleCheck = (product: productT, isChecked: boolean) => {
-  console.log(product.name, isChecked ? "is checked" : "is unchecked");
 };
 </script>
 
 <template>
-  <div class="w-full flex flex-col">
-    <table class="table-auto w-full">
-      <thead
-        class="text-xs h-9 font-semibold uppercase text-[rgba(25,23,17,0.6)] bg-gray-300"
-      >
+  <div>
+    <table>
+      <thead>
         <tr>
-          <th class="rounded-l-[4px]"></th>
-          <th class="p-2 w-fit"></th>
-          <th
-            v-for="index in [1, 2, 3, 5, 6]"
-            :key="index"
-            class="p-2 w-fit last:rounded-r-[4px]"
-          >
-            <div class="font-semibold text-left">
-              {{ t(`p.i.feilds[${index}]`) }}
-            </div>
-          </th>
+          <th class="small"></th>
+          <th class="w-20">{{ t("g.fields.name") }}</th>
+          <th class="small">{{ t("g.fields.inventory") }}</th>
+          <th>{{ t("g.fields.threshold") }}</th>
+          <th>{{ t("g.fields.price") }}</th>
+          <th class="small">{{ t("g.fields.actions") }}</th>
         </tr>
       </thead>
-      <tbody class="text-sm divide-y divide-gray-100">
+      <tbody>
         <tr
           v-for="(product, index) in products"
           :key="product.id"
           v-fade="index"
         >
+          <td class="p-2 flex justify-center">
+            <Avatar>
+              <AvatarImage :src="product.image ?? ''" />
+              <AvatarFallback class="text-xs">
+                {{ product.name.substring(0, 5) }}
+              </AvatarFallback>
+            </Avatar>
+          </td>
           <td class="p-2">
-            <span class="h-full w-full grid">
-              <Checkbox />
+            <span class="whitespace-nowrap flex justify-between gap-3">
+              {{ product.name }}
+              <HoverCard>
+                <HoverCardTrigger as-child>
+                  <Info class="cursor-pointer text-gray-800" :size="20" />
+                </HoverCardTrigger>
+                <HoverCardContent class="w-80">
+                  <div class="flex justify-between space-x-4">
+                    <div class="space-y-1">
+                      <h4 class="text-sm font-semibold">
+                        {{ product.name }}
+                      </h4>
+                      <p class="text-sm">
+                        {{ product.description ?? "" }}
+                      </p>
+                      <div class="flex items-center pt-2">
+                        <CalendarDays class="mr-2 h-4 w-4 opacity-70" />
+                        <span class="text-xs text-muted-foreground">
+                          Created at {{ d(product.createdAt!, "short") }}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </HoverCardContent>
+              </HoverCard>
             </span>
           </td>
           <td class="p-2">
-            <div class="w-12 h-12 rounded-full overflow-hidden">
-              <img
-                v-if="product.image && product.image !== ''"
-                class="rounded-full w-full h-full object-cover"
-                :src="convertFileSrc(product.image)"
-                alt=""
+            <Badge
+              variant="outline"
+              :class="
+                cn(
+                  'whitespace-nowrap',
+                  product.stock != undefined
+                    ? product?.stock <= 0
+                      ? 'bg-red-100 border-red-500 text-red-900'
+                      : product?.stock < product.minQuantity
+                        ? 'bg-yellow-100 border-yellow-500 text-yellow-900'
+                        : product?.stock > product.minQuantity
+                          ? 'bg-green-100 border-green-500 text-green-900'
+                          : ''
+                    : '',
+                )
+              "
+            >
+              {{ t("g.plrz.i", { n: product?.stock }) }}
+            </Badge>
+          </td>
+          <td class="p-2">
+            {{ t("g.plrz.i", { n: product.minQuantity }) }}
+          </td>
+          <td class="p-2">{{ product.price.toFixed(2) }} DH</td>
+
+          <td class="p-2">
+            <div class="flex justify-center gap-3">
+              <Trash2
+                @click="toggleThisProduct(product, 'ProductDelete')"
+                class="cursor-pointer text-gray-800"
+                :size="22"
               />
-              <span
-                v-else
-                class="rounded-full w-full h-full object-fill animate-pulse bg-slate-300 duration-150"
+              <FilePenLine
+                @click="toggleThisProduct(product, 'ProductUpdate')"
+                class="cursor-pointer text-gray-800"
+                :size="22"
               />
-            </div>
-          </td>
-          <td class="p-2">
-            <div class="font-medium text-gray-800">{{ product.name }}</div>
-          </td>
-          <td class="p-2">
-            <div class="font-medium text-gray-800">
-              {{ product.description }}
-            </div>
-          </td>
-          <td class="p-2">
-            <div class="text-left">{{ product.price.toFixed(2) }} DH</div>
-          </td>
-          <!-- <td class="p-2">
-            <div class="text-left">{{ product.tva.toFixed(2) }} %</div>
-          </td> -->
-          <td class="p-2">
-            <div class="text-left">
-              {{ t("g.plrz.i", { n: product?.quantity }) }}
-            </div>
-          </td>
-          <td class="p-2">
-            <div class="flex justify-start gap-3">
-              <span @click="toggleThisProduct(product, 'ProductDelete')">
-                <UiIcon isStyled name="delete" />
-              </span>
-              <span @click="toggleThisProduct(product, 'ProductUpdate')">
-                <UiIcon isStyled name="edit" />
-              </span>
             </div>
           </td>
         </tr>
       </tbody>
     </table>
-    <div>
-      <UiPagination />
-    </div>
+    <UiPagination v-if="products.length" />
   </div>
 </template>

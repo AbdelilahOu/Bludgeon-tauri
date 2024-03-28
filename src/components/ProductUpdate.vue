@@ -2,8 +2,7 @@
 import { FormControl, FormField, FormItem, FormLabel } from "./ui/form";
 import { useUpdateRouteQueryParams } from "@/composables/useUpdateQuery";
 import { useI18n } from "vue-i18n";
-import type { productT, updateProductT } from "@/types";
-import { computed, ref, onBeforeUnmount } from "vue";
+import { ref } from "vue";
 import { toTypedSchema } from "@vee-validate/zod";
 import UiModalCard from "./ui/UiModalCard.vue";
 import { invoke } from "@tauri-apps/api";
@@ -13,48 +12,83 @@ import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { store } from "@/store";
 import { z } from "zod";
+import type { ProductT } from "@/schemas/products.schema";
+import type { Res } from "@/types";
+import { useRoute } from "vue-router";
+import { error, info } from "tauri-plugin-log-api";
 
 const { updateQueryParams } = useUpdateRouteQueryParams();
 const { t } = useI18n();
+const route = useRoute();
 
-const ProductRow = computed(() => store.getters.getSelectedRow<productT>());
-
-const isLoading = ref<boolean>(false);
+const isUpdating = ref<boolean>(false);
+const quantity = ref<number>(0);
 
 const productSchema = toTypedSchema(
   z.object({
-    name: z.string().min(2).max(50).default(ProductRow.value.name),
-    price: z.number().min(0).default(ProductRow.value.price),
-    description: z
+    name: z
       .string()
       .min(2)
       .max(50)
-      .default(ProductRow.value.description ?? ""),
-    quantity: z.number().min(0).default(0),
-    // tva: z.number().min(0).max(100).default(ProductRow.value.tva),
-  })
+      .default(route.query.name as string),
+    price: z
+      .number()
+      .min(0)
+      .default(Number(route.query.price) ?? 0),
+    description: z
+      .string()
+      .min(2)
+      .default((route.query.description as string) ?? ""),
+    image: z.string().default((route.query.image ?? "") as string),
+    minQuantity: z.number().default(Number(route.query.minQuantity) ?? 0),
+  }),
 );
 
 const form = useForm({
   validationSchema: productSchema,
 });
 
-const updateTheProduct = async (product: updateProductT) => {
-  if (ProductRow.value.id) {
-    try {
-      await invoke("update_product", {
-        product: { ...product, image: ProductRow.value.image },
-        id: ProductRow.value.id,
+const updateTheProduct = async (product: ProductT) => {
+  try {
+    const id = route.query.id;
+    await invoke<Res<string>>("update_product", {
+      product: {
+        name: product.name,
+        price: Number(product.price),
+        description: product.description,
+        min_quantity: Number(product.minQuantity),
+        image: product.image,
+        id,
+      },
+    });
+
+    if (quantity.value > 0) {
+      await invoke<Res<any>>("create_inventory", {
+        mvm: {
+          mvm_type: "IN",
+          product_id: id,
+          quantity: Number(quantity.value),
+        },
       });
-      // toggle refresh
-      updateQueryParams({
-        refresh: "refresh-update-" + Math.random() * 9999,
-      });
-    } catch (error) {
-      console.log(error);
-    } finally {
-      store.setters.updateStore({ key: "show", value: false });
     }
+    info(
+      `UPDATE PRODUCT: ${JSON.stringify({
+        name: product.name,
+        price: Number(product.price),
+        description: product.description,
+        min_quantity: Number(product.minQuantity),
+        image: product.image,
+        id,
+      })}`,
+    );
+    // toggle refresh
+    updateQueryParams({
+      refresh: "refresh-update-" + Math.random() * 9999,
+    });
+  } catch (err: any) {
+    error("UPDATE PRODUCT: " + err.error);
+  } finally {
+    hideModal();
   }
 };
 
@@ -64,10 +98,6 @@ const hideModal = () => {
 
 const onSubmit = form.handleSubmit((values) => {
   updateTheProduct(values);
-});
-
-onBeforeUnmount(() => {
-  store.setters.updateStore({ key: "row", value: null });
 });
 </script>
 
@@ -80,11 +110,10 @@ onBeforeUnmount(() => {
       <form class="h-full w-full flex flex-col gap-2" @submit="onSubmit">
         <FormField v-slot="{ componentField }" name="name">
           <FormItem>
-            <FormLabel>{{ t("p.p.a") }}</FormLabel>
+            <FormLabel>{{ t("g.fields.name") }}</FormLabel>
             <FormControl>
               <Input
-                type="text"
-                placeHolder="Product name"
+                :placeholder="t('g.fields.name')"
                 v-bind="componentField"
               />
             </FormControl>
@@ -92,11 +121,11 @@ onBeforeUnmount(() => {
         </FormField>
         <FormField v-slot="{ componentField }" name="price">
           <FormItem>
-            <FormLabel>{{ t("p.p.b") }}</FormLabel>
+            <FormLabel>{{ t("g.fields.price") }}</FormLabel>
             <FormControl>
               <Input
                 type="number"
-                placeHolder="Product price"
+                :placeholder="t('g.fields.price')"
                 v-bind="componentField"
               >
                 <template #unite> DH </template>
@@ -104,23 +133,27 @@ onBeforeUnmount(() => {
             </FormControl>
           </FormItem>
         </FormField>
-        <!-- <FormField v-slot="{ componentField }" name="tva">
+        <FormField name="">
           <FormItem>
-            <FormLabel>{{ t("p.p.c") }}</FormLabel>
-            <FormControl>
-              <Input type="text" placeHolder="tva" v-bind="componentField">
-                <template #unite> % </template>
-              </Input>
-            </FormControl>
-          </FormItem>
-        </FormField> -->
-        <FormField v-slot="{ componentField }" name="quantity">
-          <FormItem>
-            <FormLabel>{{ t("p.p.d") }}</FormLabel>
+            <FormLabel>{{ t("g.fields.quantity") }}</FormLabel>
             <FormControl>
               <Input
                 type="number"
-                placeHolder="Quantity"
+                :placeholder="t('g.fields.quantity')"
+                v-model="quantity"
+              >
+                <template #unite> Item </template>
+              </Input>
+            </FormControl>
+          </FormItem>
+        </FormField>
+        <FormField v-slot="{ componentField }" name="minQuantity">
+          <FormItem>
+            <FormLabel>{{ t("g.fields.min-quantity") }}</FormLabel>
+            <FormControl>
+              <Input
+                type="number"
+                :placeholder="t('g.fields.min-quantity')"
                 v-bind="componentField"
               >
                 <template #unite> Item </template>
@@ -131,28 +164,31 @@ onBeforeUnmount(() => {
         <FormField v-slot="{ componentField }" name="description">
           <FormItem>
             <FormLabel>
-              {{ t("p.p.e") }}
+              {{ t("g.fields.description") }}
             </FormLabel>
             <FormControl>
               <Textarea
-                type="text"
-                placeholder="Description"
+                :placeholder="t('g.fields.description')"
                 v-bind="componentField"
               ></Textarea>
             </FormControl>
           </FormItem>
         </FormField>
         <div class="w-full grid grid-cols-3 gap-2">
-          <Button :disabled="isLoading" type="submit" class="w-full col-span-2">
-            {{ t("g.b.u", { name: ProductRow.name }) }}
-          </Button>
           <Button
             @click="hideModal"
             type="button"
-            :disabled="isLoading"
+            :disabled="isUpdating"
             variant="outline"
           >
             {{ t("g.b.no") }}
+          </Button>
+          <Button
+            :disabled="isUpdating"
+            type="submit"
+            class="w-full col-span-2"
+          >
+            {{ t("g.b.u", { name: $route.query.name }) }}
           </Button>
         </div>
       </form>

@@ -68,13 +68,15 @@
   }
 }
 
-@layer base {
-  * {
-    @apply border-border;
-  }
-  body {
-    @apply bg-background text-foreground;
-  }
+* {
+  @apply border-border;
+}
+
+body {
+  @apply bg-background text-foreground;
+  -webkit-user-select: none; /* Safari */
+  -ms-user-select: none; /* IE 10 and IE 11 */
+  user-select: none; /* Standard syntax */
 }
 
 .v-enter-active,
@@ -109,16 +111,42 @@
 }
 
 .router-link-active {
-  @apply bg-slate-50 transition-colors rounded-[4px] transform duration-200;
+  @apply bg-white transition-colors rounded-md transform duration-200;
 }
 
-.router-link-active > span > span,
+.router-link-active > span,
 .router-link-active > span > svg {
   @apply text-primary;
 }
 
-* {
-  -webkit-user-select: none; /* Safari */
-  -ms-user-select: none; /* IE 10 and IE 11 */
-  user-select: none; /* Standard syntax */
+div:has(> table:not(.not-default)) {
+  @apply flex flex-col h-full w-full mb-14 rounded-md overflow-hidden border border-gray-200 bg-white;
+}
+
+table:not(.not-default) {
+  @apply w-full table-auto;
+}
+
+table:not(.not-default) > thead {
+  @apply text-xs h-10 bg-gray-100 max-w-lg w-fit font-semibold text-[rgba(25,23,17,0.6)];
+}
+
+table:not(.not-default) > thead > tr {
+  @apply [&>*]:border-x whitespace-nowrap first:[&>th]:border-0 last:[&>th]:border-0;
+}
+
+table:not(.not-default) > thead > tr > th {
+  @apply font-semibold text-left whitespace-nowrap p-2 first-letter:capitalize;
+}
+
+table:not(.not-default) > thead > tr > .small {
+  @apply font-semibold text-left p-2 first-letter:capitalize w-11;
+}
+
+table:not(.not-default) > tbody {
+  @apply text-sm divide-y divide-gray-200;
+}
+
+table:not(.not-default) > tbody > tr {
+  @apply [&>*]:border-x first:[&>td]:border-0 last:[&>td]:border-0;
 }

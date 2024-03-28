@@ -2,170 +2,149 @@
   "g": {
     "s": "Suchen",
     "r": {
-      "Clients": "Kunden",
-      "Sellers": "Verkäufer",
+      "Clients": "Klienten",
+      "Suppliers": "Lieferanten",
       "Products": "Produkte",
       "Orders": "Aufträge",
       "Invoices": "Rechnungen",
       "Inventory": "Inventar",
-      "Statistics": "Statistiken",
-      "Payment": "Zahlungt",
-      "Sittings": "Sitzungen",
+      "Dashboard": "Instrumententafel",
+      "Payment": "Paymentt",
+      "Settings": "Einstellungen",
       "Notifications": "Benachrichtigungen"
     },
     "b": {
-      "no": "Stornieren",
-      "c": "Erstellen",
+      "no": "Abbrechen",
+      "c": "Hinzufügen",
       "d": "Bestätigen",
-      "u": "Aktualisieren Sie {name}",
+      "u": "{name} aktualisieren",
       "a": "Hinzufügen",
-      "csv": "Hochladen auf {table}"
+      "csv": "Auf {table} hochladen"
     },
     "translationTitle": "Sprache ändern",
     "dropZone": "Ziehen Sie Ihr Bild per Drag & Drop oder wählen Sie es aus",
     "plrz": {
-      "i": "keine Artikel | {n} Artikel | {n} Artikel",
-      "p": "keine Produkte | {n} Produkt | {n} Produkte"
+      "i": "Keine Artikel | {n} Artikel | {n} Artikel",
+      "p": "Keine Artikel | {n} Produkt | {n} Produkte"
+    },
+    "fields": {
+      "fullname": "Vollständiger Name",
+      "name": "Produktname",
+      "email": "E-Mail",
+      "phone": "Telefonnummer",
+      "address": "Adresse",
+      "actions": "Aktionen",
+      "description": "Beschreibung",
+      "status": "Status",
+      "price": "Preis",
+      "date": "Datum",
+      "paid": "Avance",
+      "rest": "Der Rest",
+      "items": "Artikel",
+      "total": "Gesamt",
+      "inventory": "Inventar",
+      "init-quantity": "Initiale Menge",
+      "min-quantity": "Mindestmenge",
+      "quantity": "Menge",
+      "credit": "Kredit",
+      "threshold": "Schwelle"
+    },
+    "status": {
+      "delivered": "Abgegeben",
+      "pending": "Anhängig",
+      "canceled": "Abgebrochen",
+      "paid": "Bezahlt",
+      "in": "Gekauft",
+      "out": "Verkauft"
     }
   },
   "csv": { "title": "CSV-Dateien hochladen" },
-  "stats": {
+  "dashboard": {
     "i": {
-      "title": "In den letzten drei Monaten verkaufte und gekaufte Artikel",
+      "title": "Verkaufte und gekaufte Artikel in den letzten drei Monaten",
       "labels": ["GEKAUFT", "VERKAUFT"],
-      "b3c": "Beste Kunden basierend auf den Ausgaben",
-      "b3s": "Bestseller basierend auf den Ausgaben"
+      "b3c": "Beste Kunden auf der Grundlage der Ausgaben",
+      "b3s": "Beste Lieferanten nach Kosten"
     },
-    "de": {
-      "title": "Produkte, die in den letzten drei Monaten gekauft wurden"
-    }
+    "de": { "title": "Produkte, die gekauft werden, halten drei Monate" }
   },
   "c": {
-    "p": {
-      "a": "Vollständiger Name",
-      "b": "Email",
-      "c": "Telefonnummer",
-      "d": "Adresse"
-    },
-    "i": {
-      "addButton": "Neuen Kunden hinzufügen",
-      "feilds": ["Kundenname", "Email", "Telefonnummer", "Adresse", "Aktion"]
-    },
-    "c": { "title": "Erstellen Sie einen Kunden" },
+    "i": { "addButton": "Neuen Kunden hinzufügen" },
+    "c": { "title": "Hinzufügen eines Clients" },
     "u": { "title": "Client aktualisieren" },
     "d": { "title": "Sind Sie sicher, dass Sie den Client löschen möchten?" }
   },
   "s": {
-    "p": {
-      "a": "Vollständiger Name",
-      "b": "Email",
-      "c": "Telefonnummer",
-      "d": "Adresse"
-    },
-    "i": {
-      "addButton": "Neuen Verkäufer hinzufügen",
-      "feilds": [
-        "Name des Verkäufers",
-        "Email",
-        "Telefonnummer",
-        "Adresse",
-        "Aktion"
-      ]
-    },
-    "c": { "title": "Erstellen Sie einen Verkäufer" },
-    "u": { "title": "Verkäufer aktualisieren" },
-    "d": { "title": "Sind Sie sicher, dass Sie den Verkäufer löschen möchten?" }
+    "i": { "addButton": "Neuen Lieferanten hinzufügen" },
+    "c": { "title": "Hinzufügen eines Lieferanten" },
+    "u": { "title": "Update-Lieferant" },
+    "d": {
+      "title": "Sind Sie sicher, dass Sie den Lieferanten löschen möchten?"
+    }
   },
   "p": {
-    "i": {
-      "addButton": "Neues Produkt hinzufügen",
-      "feilds": [
-        "Ausweis",
-        "Produktname",
-        "Beschreibung",
-        "Preis",
-        "TVA",
-        "Inventar",
-        "Aktion"
-      ],
-      "types": ["Produkt", "Service"]
-    },
-    "p": {
-      "a": "Name",
-      "b": "Preis",
-      "c": "TVA",
-      "d": "Anfangsmenge",
-      "e": "Beschreibung"
-    },
-    "c": { "title": "ein Produkt erstellen" },
-    "u": { "title": "Produkt aktualisieren" },
+    "i": { "addButton": "Neues Produkt hinzufügen" },
+    "c": { "title": "Fügen Sie ein Produkt hinzu" },
+    "u": { "title": "Produkt AKTUALISIEREN" },
     "d": { "title": "Sind Sie sicher, dass Sie das Produkt löschen möchten?" }
   },
   "o": {
-    "i": {
-      "addButton": "Neue Bestellung hinzufügen",
-      "feilds": ["Ausweis", "Verkäufer", "Artikel", "STATUS", "Datum", "Aktion"]
-    },
+    "i": { "addButton": "Neue Bestellung hinzufügen" },
     "c": {
-      "title": "neue Ordnung erstellen",
+      "title": "Neue Bestellung hinzufügen",
       "d": {
         "s": {
-          "title": "Angaben zum Verkäufer",
-          "select": "Wählen Sie einen Verkäufer aus"
+          "title": "Angaben zum Lieferanten",
+          "select": "Wählen Sie einen Lieferanten aus"
         },
         "o": {
-          "title": "Bestelldetails",
+          "title": "Details zur Bestellung",
           "add": "Fügen Sie ein Produkt hinzu",
-          "select": "Wähle ein Produkt",
+          "select": "Wählen Sie ein Produkt aus",
           "placeholder": ["Produktmenge", "Neuer Preis"]
         }
       },
-      "button": "Erstellen Sie eine Bestellung"
+      "button": "Fügen Sie eine Bestellung hinzu"
     },
     "u": {
-      "title": "Reihenfolge aktualisieren",
+      "title": "Bestellung aktualisieren",
       "d": {
         "s": {
-          "title": "Angaben zum Verkäufer",
-          "select": "Wählen Sie einen Verkäufer aus"
+          "title": "Angaben zum Lieferanten",
+          "select": "Wählen Sie einen Lieferanten aus"
         },
         "o": {
-          "title": "Bestelldetails",
-          "select": "Wähle ein Produkt",
+          "title": "Details zur Bestellung",
+          "select": "Wählen Sie ein Produkt aus",
           "add": "Fügen Sie ein Produkt hinzu"
         }
       },
-      "button": "Bestellungen aktualisieren"
+      "button": "Aktualisieren von Aufträgen"
     },
     "d": {
       "title": "Sind Sie sicher, dass Sie die Bestellung löschen möchten?",
       "yes": "Bestätigen",
-      "no": "Stornieren"
-    },
-    "s": {
-      "delivered": "Geliefert",
-      "pending": "Ausstehend",
-      "canceled": "Abgesagt"
+      "no": "Abbrechen"
     }
   },
   "od": {
     "d": {
       "o": {
-        "title": "Bestelldetails",
-        "id": "Ausweis",
+        "title": "Details zur Bestellung",
+        "id": "id",
         "date": "Datum",
         "status": "Status"
       },
       "s": {
-        "title": "Angaben zum Verkäufer",
-        "id": "Ausweis",
+        "title": "Angaben zum Lieferanten",
+        "id": "id",
         "name": "Name",
         "phone": "Telefonnummer",
-        "email": "Email",
+        "email": "E-Mail",
         "address": "Adresse"
       },
       "i": {
-        "title": "Einzelheiten zu den Bestellartikeln",
+        "title": "Details zu den Bestellartikeln",
         "fields": ["Name", "Beschreibung", "Menge", "Preis", "gesamt"]
       },
       "button": "drucken"
@@ -173,57 +152,46 @@
   },
   "id": {
     "d": {
-      "i": { "title": "Rechnungs-Details", "id": "Ausweis", "date": "Datum" },
+      "i": { "title": "Details zur Rechnung", "id": "id", "date": "Datum" },
       "c": {
         "title": "Kundendaten",
-        "id": "Ausweis",
+        "id": "id",
         "name": "Name",
         "phone": "Telefonnummer",
-        "email": "Email",
+        "email": "E-Mail",
         "address": "Adresse"
       },
       "it": {
-        "title": "Einzelheiten zu den Rechnungspositionen",
+        "title": "Details zu Rechnungspositionen",
         "fields": ["Name", "Beschreibung", "Menge", "Preis", "gesamt"]
       },
       "button": "drucken"
     }
   },
   "i": {
-    "i": {
-      "addButton": "Neue Rechnung hinzufügen",
-      "feilds": [
-        "Ausweis",
-        "Klient",
-        "Artikel",
-        "gesamt",
-        "Status",
-        "Datum",
-        "Aktion"
-      ]
-    },
+    "i": { "addButton": "Neue Rechnung hinzufügen" },
     "c": {
-      "title": "Neue Rechnung erstellen",
+      "title": "Neue Rechnung hinzufügen",
       "d": {
         "c": {
           "title": "Kundendaten",
           "select": "Wählen Sie einen Kunden aus"
         },
         "i": {
-          "title": "Rechnungs-Details",
+          "title": "Details zur Rechnung",
           "add": "Fügen Sie ein Produkt hinzu",
-          "select": "Wähle ein Produkt",
+          "select": "Wählen Sie ein Produkt aus",
           "placeholder": ["Produktmenge", "Neuer Preis"]
         }
       },
-      "button": "Erstellen Sie eine Rechnung"
+      "button": "Hinzufügen einer Rechnung"
     },
     "u": {
       "title": "Rechnung aktualisieren",
       "d": {
         "c": { "title": "Kundendaten", "select": "--" },
         "i": {
-          "title": "Rechnungs-Details",
+          "title": "Details zur Rechnung",
           "add": "Fügen Sie ein Produkt hinzu",
           "select": "--"
         }
@@ -233,38 +201,22 @@
     "d": {
       "title": "Sind Sie sicher, dass Sie die Rechnung löschen möchten?",
       "yes": "Bestätigen",
-      "no": "Stornieren"
+      "no": "Abbrechen"
     },
-    "s": {
-      "delivered": "Geliefert",
-      "pending": "Ausstehend",
-      "canceled": "Abgesagt"
-    }
+    "s": { "paid": "Bezahlt", "pending": "Anhängig", "canceled": "Abgebrochen" }
   },
   "im": {
-    "i": {
-      "addButton": "Zum Inventar hinzufügen",
-      "feilds": [
-        "Ausweis",
-        "Produktname",
-        "Produktpreis",
-        "Verkaufspreis",
-        "Menge",
-        "Bewegungsart",
-        "Datum",
-        "--"
-      ]
-    },
+    "i": { "addButton": "Zum Inventar hinzufügen" },
     "c": {
       "title": "Artikel zum Inventar hinzufügen",
       "l": { "a": "Produkt", "b": "Menge" },
-      "p": { "a": "Wähle ein Produkt", "b": "Menge" }
+      "p": { "a": "Wählen Sie ein Produkt aus", "b": "Menge" }
     }
   },
   "auth": {
-    "title": "Anmeldung",
+    "title": "Anmelden",
     "username": "Nutzername",
-    "email": "Email",
+    "email": "E-Mail",
     "password": "Passwort"
   }
 }

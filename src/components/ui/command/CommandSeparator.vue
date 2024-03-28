@@ -9,7 +9,7 @@ const props = defineProps<ComboboxSeparatorProps>();
 <template>
   <ComboboxSeparator
     v-bind="props"
-    :class="cn('-mx-1 h-px bg-border', $attrs.class as String ?? '')"
+    :class="cn('-mx-1 h-px bg-border', ($attrs.class as String) ?? '')"
   >
     <slot />
   </ComboboxSeparator>

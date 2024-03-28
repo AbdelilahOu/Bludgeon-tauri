@@ -1,51 +1,53 @@
 <script setup lang="ts">
 import { useUpdateRouteQueryParams } from "@/composables/useUpdateQuery";
 import { useI18n } from "vue-i18n";
-import { computed, onBeforeUnmount } from "vue";
+import { onBeforeUnmount } from "vue";
 import { invoke } from "@tauri-apps/api";
-import type { orderT } from "@/types";
 import { Button } from "./ui/button";
 import { store } from "@/store";
 import UiModalCard from "./ui/UiModalCard.vue";
+import { error, info } from "tauri-plugin-log-api";
+import type { Res } from "@/types";
 
 const { t } = useI18n();
 const { updateQueryParams } = useUpdateRouteQueryParams();
-const order = computed(() => store.getters.getSelectedRow<orderT>());
 
-const deleteTheOrders = async () => {
-  const id = order.value?.id;
-  if (id) {
-    try {
-      await invoke("delete_order", { id });
-      // toggle refresh
-      updateQueryParams({
-        refresh: "refresh-delete-" + Math.random() * 9999,
-      });
-    } catch (error) {
-      console.log(error);
-    } finally {
-      store.setters.updateStore({ key: "show", value: false });
-    }
+const deleteTheOrders = async (id: string) => {
+  try {
+    await invoke<Res<any>>("delete_order", { id });
+    //
+    info(`DELETE ORDER: ${id}`);
+    // toggle refresh
+    updateQueryParams({
+      refresh: "refresh-delete-" + Math.random() * 9999,
+    });
+  } catch (err: any) {
+    error("DELETE ORDER: " + err.error);
+  } finally {
+    store.setters.updateStore({ key: "show", value: false });
   }
 };
 
 const cancelDelete = () => {
   store.setters.updateStore({ key: "show", value: false });
 };
-
-onBeforeUnmount(() => store.setters.updateStore({ key: "row", value: null }));
 </script>
 
 <template>
   <UiModalCard>
-    <template #title> {{ t("o.d.title") }}n° {{ order?.id }} ? </template>
+    <template #title>
+      {{ t("o.d.title") }}n° {{ $route.query?.id }} ?
+    </template>
     <template #footer>
       <div class="grid grid-cols-3 gap-2">
-        <Button class="col-span-2" @click="deleteTheOrders()">
-          {{ t("g.b.d") }}
-        </Button>
         <Button variant="outline" @click="cancelDelete">
           {{ t("g.b.no") }}
+        </Button>
+        <Button
+          class="col-span-2"
+          @click="deleteTheOrders($route.query?.id as string)"
+        >
+          {{ t("g.b.d") }}
         </Button>
       </div>
     </template>

@@ -1,60 +1,70 @@
 <script setup lang="ts">
 import { FormControl, FormField, FormItem, FormLabel } from "./ui/form";
 import { useUpdateRouteQueryParams } from "@/composables/useUpdateQuery";
-import { ImagesFiles } from "@/constants/FileTypes";
 import { toTypedSchema } from "@vee-validate/zod";
 import UiModalCard from "./ui/UiModalCard.vue";
 import UiUploader from "./ui/UiUploader.vue";
-import type { newClientT } from "@/types";
 import { invoke } from "@tauri-apps/api";
 import { useForm } from "vee-validate";
-import { saveFile } from "@/utils/fs";
+import { getFileBytes } from "@/utils/fs";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { useI18n } from "vue-i18n";
 import { store } from "@/store";
 import { ref } from "vue";
-import { z } from "zod";
+import { CreateClientSchema, type ClientT } from "@/schemas/client.schema";
+import { info, error } from "tauri-plugin-log-api";
+import type { Res } from "@/types";
+import { toast } from "vue-sonner";
 
 const { t } = useI18n();
 const { updateQueryParams } = useUpdateRouteQueryParams();
 
-const clientSchema = toTypedSchema(
-  z.object({
-    fullname: z.string().min(2).max(50),
-    email: z.string().min(2).max(50),
-    phone: z.string().min(2).max(50),
-    address: z.string().min(2).max(50),
-  })
-);
+const clientSchema = toTypedSchema(CreateClientSchema);
 
 const form = useForm({
   validationSchema: clientSchema,
 });
 
-const image = ref<string>();
+const imagePath = ref<string>();
 
-const isLoading = ref<boolean>(false);
+const isCreating = ref<boolean>(false);
 
-const createNewClient = async (client: newClientT) => {
-  isLoading.value = true;
-  if (client.fullname !== "") {
-    try {
-      let image: string = await saveFile(client.image as string, "Image");
-      await invoke("insert_client", { client: { ...client, image } });
-      // toggle refresh
-      updateQueryParams({
-        refresh: "refresh-create-" + Math.random() * 9999,
-      });
-    } catch (error) {
-      console.log(error);
-    } finally {
-      isLoading.value = false;
-      hideModal();
-    }
-    return;
+const createNewClient = async (client: ClientT) => {
+  isCreating.value = true;
+  try {
+    let imageBase64 = await getFileBytes(imagePath.value);
+    await invoke<Res<null>>("create_client", {
+      client: {
+        full_name: client.fullname,
+        email: client.email,
+        phone_number: client.phoneNumber,
+        address: client.address,
+        image: `data:image/png;base64,${imageBase64}`,
+      },
+    });
+    //
+    info(
+      `CREATE CLIENT: ${JSON.stringify({
+        ...client,
+        image: `data:image/png;base64,${imageBase64}`,
+      })}`,
+    );
+    //
+    toast("New client added successfully", {
+      description: "Client " + client.fullname + " has been added",
+      closeButton: true,
+    });
+    // toggle refresh
+    updateQueryParams({
+      refresh: "refresh-create-" + Math.random() * 9999,
+    });
+  } catch (err: any) {
+    error("CREATE CLIENT: " + err.error);
+  } finally {
+    isCreating.value = false;
+    hideModal();
   }
-  isLoading.value = false;
 };
 
 const hideModal = () => {
@@ -65,8 +75,8 @@ const onSubmit = form.handleSubmit((values) => {
   createNewClient(values);
 });
 
-const setImage = (imagePath: string) => {
-  image.value = imagePath;
+const setImage = (image: string) => {
+  imagePath.value = image;
 };
 </script>
 
@@ -79,16 +89,15 @@ const setImage = (imagePath: string) => {
       <form class="h-full w-full flex flex-col gap-2" @submit="onSubmit">
         <UiUploader
           name="Image"
-          :extensions="ImagesFiles"
+          :extensions="['png', 'jpeg', 'webp']"
           @on:save="setImage"
         />
         <FormField v-slot="{ componentField }" name="fullname">
           <FormItem>
-            <FormLabel>{{ t("c.p.a") }}</FormLabel>
+            <FormLabel>{{ t("g.fields.fullname") }}</FormLabel>
             <FormControl>
               <Input
-                type="text"
-                :placeHolder="t('c.p.a')"
+                :placeholder="t('g.fields.fullname')"
                 v-bind="componentField"
               />
             </FormControl>
@@ -96,52 +105,47 @@ const setImage = (imagePath: string) => {
         </FormField>
         <FormField v-slot="{ componentField }" name="email">
           <FormItem>
-            <FormLabel>{{ t("c.p.b") }}</FormLabel>
+            <FormLabel>{{ t("g.fields.email") }}</FormLabel>
             <FormControl>
-              <Input
-                type="text"
-                placeHolder="example@gmail.com"
-                v-bind="componentField"
-              />
+              <Input placeholder="example@gmail.com" v-bind="componentField" />
             </FormControl>
           </FormItem>
         </FormField>
-        <FormField v-slot="{ componentField }" name="phone">
+        <FormField v-slot="{ componentField }" name="phoneNumber">
           <FormItem>
-            <FormLabel>{{ t("c.p.c") }}</FormLabel>
+            <FormLabel>{{ t("g.fields.phone") }}</FormLabel>
             <FormControl>
-              <Input
-                type="text"
-                placeHolder="+2126********"
-                v-bind="componentField"
-              />
+              <Input placeholder="+2126********" v-bind="componentField" />
             </FormControl>
           </FormItem>
         </FormField>
         <FormField v-slot="{ componentField }" name="address">
           <FormItem>
-            <FormLabel>{{ t("c.p.d") }}</FormLabel>
+            <FormLabel>{{ t("g.fields.address") }}</FormLabel>
             <FormControl>
               <Input
-                type="text"
-                :placeHolder="t('c.p.d')"
+                :placeholder="t('g.fields.address')"
                 v-bind="componentField"
               />
             </FormControl>
           </FormItem>
         </FormField>
         <div class="w-full grid grid-cols-3 gap-2">
-          <Button :disabled="isLoading" type="submit" class="w-full col-span-2">
-            {{ t("g.b.c") }}
-          </Button>
           <Button
             @click="hideModal"
             type="button"
-            :disabled="isLoading"
+            :disabled="isCreating"
             variant="outline"
           >
             {{ t("g.b.no") }}</Button
           >
+          <Button
+            :disabled="isCreating"
+            type="submit"
+            class="w-full col-span-2"
+          >
+            {{ t("g.b.c") }}
+          </Button>
         </div>
       </form>
     </template>

@@ -16,7 +16,7 @@ const emitsAsProps = useEmitAsProps(emits);
     :class="
       cn(
         'flex h-full w-full flex-col overflow-hidden rounded-md bg-popover text-popover-foreground',
-        $attrs.class as String ?? ''
+        ($attrs.class as String) ?? '',
       )
     "
   >

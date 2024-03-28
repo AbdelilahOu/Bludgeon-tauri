@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { Separator, type SeparatorProps } from 'radix-vue'
-import { cn } from '@/utils/shadcn'
+import { Separator, type SeparatorProps } from "radix-vue";
+import { cn } from "@/utils/shadcn";
 
-const props = defineProps<SeparatorProps & { class?: string }>()
+const props = defineProps<SeparatorProps & { class?: string }>();
 </script>
 
 <template>

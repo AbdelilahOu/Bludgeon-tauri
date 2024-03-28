@@ -1,45 +1,85 @@
 <script setup lang="ts">
-import { ref, computed, reactive, onBeforeMount, onBeforeUnmount } from "vue";
+import { ref, reactive, onBeforeMount } from "vue";
 import { useUpdateRouteQueryParams } from "@/composables/useUpdateQuery";
 import { useI18n } from "vue-i18n";
-import { ORDER_UPDATE } from "@/constants/defaultValues";
-import type { orderT, updateOrdersT } from "@/types";
-import ComboBox from "./ui/combobox/ComboBox.vue";
-import { Checkbox } from "./ui/checkbox";
 import { invoke } from "@tauri-apps/api";
 import { Button } from "./ui/button";
-import UiIcon from "./ui/UiIcon.vue";
+import { Trash2 } from "lucide-vue-next";
 import { Input } from "./ui/input";
 import { store } from "@/store";
 import UiModalCard from "./ui/UiModalCard.vue";
 import { Label } from "./ui/label";
 import { Separator } from "./ui/separator";
+import { useRoute } from "vue-router";
+import type { Res } from "@/types";
+import type { OrderForUpdateT } from "@/schemas/order.schema";
+import {
+  SelectContent,
+  SelectTrigger,
+  SelectValue,
+  SelectItem,
+  Select,
+} from "@/components/ui/select";
+import SearchableItems from "./ui/UISearchableItems.vue";
+import { error, info } from "tauri-plugin-log-api";
 
 const { updateQueryParams } = useUpdateRouteQueryParams();
 const { t } = useI18n();
+const route = useRoute();
 
-const OrdersRow = computed(() => store.getters.getSelectedRow<orderT>());
-
-const sellers = ref<{ label: string; value: string }[]>([]);
+const suppliers = ref<{ label: string; value: string }[]>([]);
 const products = ref<{ label: string; value: string }[]>([]);
-
-const updateOrder = reactive<updateOrdersT>(
-  OrdersRow.value ? OrdersRow.value : ORDER_UPDATE
-);
+const order = reactive<OrderForUpdateT>({
+  id: "",
+  supplierId: "",
+  fullname: "",
+  createdAt: "",
+  status: "",
+  items: [],
+});
 
 onBeforeMount(async () => {
   // @ts-ignore
-  const res = await Promise.allSettled([
-    invoke<{ label: string; value: string }[]>("get_all_sellers"),
-    invoke<{ label: string; value: string }[]>("get_all_products"),
-  ]);
+  const res = await invoke<Res<OrderForUpdateT>>("get_order", {
+    id: route.query.id,
+  });
 
-  if (res[0].status === "fulfilled") sellers.value = res[0].value;
-  if (res[1].status === "fulfilled") products.value = res[1].value;
+  if (!res.error) {
+    order.id = res.data.id;
+    order.supplierId = res.data.supplierId;
+    order.createdAt = res.data.createdAt;
+    order.status = res.data.status;
+    order.fullname = res.data.fullname;
+    order.items = res.data.items;
+  }
 });
 
+const searchSuppliers = async (search: string | number) => {
+  const res = await invoke<Res<{ label: string; value: string }[]>>(
+    "search_suppliers",
+    {
+      search,
+    },
+  );
+  if (!res.error) {
+    suppliers.value = res.data;
+  }
+};
+
+const searchProducts = async (search: string | number) => {
+  const res = await invoke<Res<{ label: string; value: string }[]>>(
+    "search_products",
+    {
+      search,
+    },
+  );
+  if (!res.error) {
+    products.value = res.data;
+  }
+};
+
 const addOrderItem = () => {
-  updateOrder.order_items.push({
+  order.items?.push({
     product_id: undefined,
     quantity: undefined,
     price: undefined,
@@ -47,21 +87,59 @@ const addOrderItem = () => {
 };
 
 const updateTheOrders = async () => {
-  if (updateOrder.id) {
-    try {
-      await invoke("update_order", {
-        order: updateOrder,
-        id: updateOrder.id,
-      });
-      // toggle refresh
-      updateQueryParams({
-        refresh: "refresh-update-" + Math.random() * 9999,
-      });
-    } catch (error) {
-      console.log(error);
-    } finally {
-      hideModal();
+  try {
+    await invoke<Res<String>>("update_order", {
+      order: {
+        id: order.id,
+        supplier_id: order.supplierId,
+        status: order.status,
+      },
+    });
+    for await (const item of order.items) {
+      if (!item.id) {
+        const invRes = await invoke<Res<string>>("create_inventory", {
+          mvm: {
+            mvm_type: "IN",
+            product_id: item.product_id,
+            quantity: item.quantity,
+          },
+        });
+        await invoke<Res<string>>("create_order_item", {
+          item: {
+            order_id: order.id,
+            inventory_id: invRes.data,
+            price: item.price,
+          },
+        });
+      } else {
+        await invoke<Res<string>>("update_inventory", {
+          mvm: {
+            id: item.inventory_id,
+            mvm_type: "IN",
+            product_id: item.product_id,
+            quantity: item.quantity,
+          },
+        });
+        await invoke<Res<string>>("update_order_item", {
+          item: {
+            id: item.id,
+            order_id: order.id,
+            inventory_id: item.inventory_id,
+            price: item.price,
+          },
+        });
+      }
     }
+    //
+    info(`UPDATE ORDER: ${JSON.stringify(order)}`);
+    // toggle refresh
+    updateQueryParams({
+      refresh: "refresh-update-" + Math.random() * 9999,
+    });
+  } catch (err: any) {
+    error("UPDATE ORDER: " + err.error);
+  } finally {
+    hideModal();
   }
 };
 
@@ -71,77 +149,52 @@ const hideModal = () => {
 
 async function deleteOneOrderItem(id: string) {
   try {
-    await invoke("delete_order_items", { id });
-  } catch (error) {
-    console.log(error);
+    await invoke("delete_order_item", { id });
+  } catch (err: any) {
+    error("Error creating client : " + err.error);
   }
 }
 
 const deleteOrderItem = (index: number) => {
-  const item = updateOrder.order_items?.splice(index, 1)[0];
+  const item = order.items?.splice(index, 1)[0];
   if (item?.id) deleteOneOrderItem(item.id);
 };
-
-onBeforeUnmount(() => store.setters.updateStore({ key: "row", value: null }));
 </script>
 
 <template>
   <UiModalCard
-    class="w-5/6 lg:w-1/2 relative h-fit rounded-[4px] z-50 gap-3 flex flex-col bg-white p-2 min-w-[350px]"
+    class="w-5/6 lg:w-1/2 relative h-fit rounded-md z-50 gap-3 flex flex-col bg-white p-2 min-w-[350px]"
   >
-    <template #title> {{ t("o.u.title") }} N° {{ updateOrder.id }} </template>
+    <template #title> {{ t("o.u.title") }} N° {{ order?.id }} </template>
     <template #content>
       <div class="h-full w-full grid grid-cols-1 gap-2">
-        <div class="w-full h-full flex flex-col gap-1">
-          <Label for="seller_id">
-            {{ t("o.u.d.o.title") }}
-          </Label>
-          <span id="seller_id">
-            <ComboBox
-              :label="t('o.u.d.o.select')"
-              v-model="updateOrder.seller_id"
-              :items="sellers"
+        <div class="flex w-full h-fit gap-1">
+          <div class="w-full h-full flex flex-col gap-1">
+            <Label for="supplier_id">
+              {{ t("o.u.d.o.title") }}
+            </Label>
+            <SearchableItems
+              v-if="order.fullname"
+              :defaultValue="order.fullname"
+              :items="suppliers"
+              @update:items="(s) => searchSuppliers(s)"
+              @on:select="(id) => (order.supplierId = id)"
             />
-          </span>
-        </div>
-        <Separator />
-        <div class="w-full h-full flex flex-col gap-1">
-          <Label for="status">
-            {{ t("o.u.d.o.title") }}
-          </Label>
-          <div id="status" class="w-full h-full flex flex-col mb-1 gap-1">
-            <div class="flex justify-between w-full">
-              <div
-                class="h-full w-full flex flex-row flex-nowrap items-center gap-2"
-              >
-                <Checkbox
-                  id="status_1"
-                  :checked="updateOrder.status === 'delivered'"
-                  @update:checked="() => (updateOrder.status = 'delivered')"
-                />
-                <Label for="status_1">{{ t("o.s.delivered") }}</Label>
-              </div>
-              <div
-                class="h-full w-full flex flex-row flex-nowrap items-center justify-center gap-2"
-              >
-                <Checkbox
-                  id="status_2"
-                  :checked="updateOrder.status === 'pending'"
-                  @update:checked="() => (updateOrder.status = 'pending')"
-                />
-                <Label for="status_2">{{ t("o.s.pending") }}</Label>
-              </div>
-              <div
-                class="h-full w-full flex flex-row justify-end flex-nowrap items-center gap-2"
-              >
-                <Checkbox
-                  id="status_3"
-                  :checked="updateOrder.status === 'canceled'"
-                  @update:checked="() => (updateOrder.status = 'canceled')"
-                />
-                <Label for="status_3">{{ t("o.s.canceled") }}</Label>
-              </div>
-            </div>
+          </div>
+          <div class="w-full h-full flex flex-col gap-1">
+            <Label for="status">
+              {{ t("o.u.d.o.title") }}
+            </Label>
+            <Select v-model="order.status">
+              <SelectTrigger>
+                <SelectValue placeholder="Select a status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="DELIVERED"> Delivered </SelectItem>
+                <SelectItem value="CANCELED"> Cancelled </SelectItem>
+                <SelectItem value="PENDING"> Pending </SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </div>
         <Separator />
@@ -150,16 +203,16 @@ onBeforeUnmount(() => store.setters.updateStore({ key: "row", value: null }));
             {{ t("o.u.d.o.add") }}
           </Button>
           <div
-            class="w-full pt-1 grid grid-cols-[1fr_1fr_1fr_36px] pb-10 overflow-auto scrollbar-thin scrollbar-thumb-transparent max-h-64 gap-1"
+            class="w-full pt-1 grid grid-cols-[1fr_1fr_1fr_36px] items-center overflow-auto scrollbar-thin scrollbar-thumb-transparent max-h-64 gap-1"
           >
-            <template
-              v-for="(item, index) in updateOrder.order_items"
-              :key="index"
-            >
-              <ComboBox
-                :label="t('o.u.d.o.select')"
-                v-model="item.product_id"
+            <template v-for="(item, index) in order.items" :key="index">
+              <SearchableItems
+                :defaultValue="item.name"
                 :items="products"
+                @update:items="(s) => searchProducts(s)"
+                @on:select="
+                  (id, price) => ((item.product_id = id), (item.price = price))
+                "
               />
               <Input
                 v-model="item.quantity"
@@ -177,12 +230,11 @@ onBeforeUnmount(() => store.setters.updateStore({ key: "row", value: null }));
               >
                 <template #unite> DH </template>
               </Input>
-              <div
+              <Trash2
                 @click="deleteOrderItem(index)"
-                class="flex justify-center bg-gray-100 hover:bg-gray-300 transition-all duration-200 rounded-[4px] items-center w-full h-full"
-              >
-                <UiIcon name="delete" />
-              </div>
+                class="cursor-pointer"
+                :size="22"
+              />
             </template>
           </div>
         </div>
@@ -190,11 +242,11 @@ onBeforeUnmount(() => store.setters.updateStore({ key: "row", value: null }));
     </template>
     <template #footer>
       <div class="grid grid-cols-3 gap-2">
-        <Button class="col-span-2" @click="updateTheOrders">
-          {{ t("g.b.d") }}
-        </Button>
         <Button variant="outline" @click="hideModal">
           {{ t("g.b.no") }}
+        </Button>
+        <Button class="col-span-2" @click="updateTheOrders">
+          {{ t("g.b.d") }}
         </Button>
       </div>
     </template>

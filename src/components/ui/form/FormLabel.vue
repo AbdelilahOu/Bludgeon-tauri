@@ -15,11 +15,13 @@ const { class: className, ...rest } = useAttrs();
 
 <template>
   <Label
-    :class="cn(
-      'block text-sm tracking-tight font-medium text-foreground text-left',
-      error && 'text-destructive',
-      className as string ?? '',
-    )"
+    :class="
+      cn(
+        'block text-sm tracking-tight font-medium text-foreground text-left',
+        error && 'text-destructive',
+        (className as string) ?? '',
+      )
+    "
     :for="formItemId"
     v-bind="rest"
   >

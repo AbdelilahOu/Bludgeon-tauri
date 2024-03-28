@@ -2,13 +2,16 @@
 name = "app"
 version = "0.1.0"
 description = "A Tauri App"
-authors = ["you"]
+authors = ["AbdelilahOu"]
 license = ""
 repository = ""
 default-run = "app"
 edition = "2021"
 rust-version = "1.59"
 build = "src/build.rs"
+
+[workspace]
+members = [".", "service", "entity", "migration"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -19,26 +22,29 @@ tauri-build = { version = "1.5.1", features = [] }
 serde_json = "1.0"
 serde = { version = "1.0", features = ["derive"] }
 tauri = { version = "1.5.4", features = [
-    "dialog-open",
-    "fs-all",
-    "notification-all",
-    "path-all",
-    "process-command-api",
-    "protocol-all",
-    "shell-open",
-    "shell-sidecar",
-    "updater",
+  "dialog-open",
+  "fs-all",
+  "notification-all",
+  "path-all",
+  "process-command-api",
+  "protocol-all",
 ] }
 csv = "1.1"
-tauri-plugin-oauth = { git = "https://github.com/FabianLars/tauri-plugin-oauth", branch = "main" }
+tauri-plugin-log = { git = "https://github.com/tauri-apps/plugins-workspace", branch = "v1" }
 tokio = { version = "1", features = ["full"] }
 chrono = { version = "0.4", features = ["serde"] }
-diesel = { version = "2.0.2", features = ["sqlite", "chrono", "uuid"] }
-diesel_migrations = { version = "2.0.0", features = ["sqlite"] }
 libsqlite3-sys = { version = "^0", features = ["bundled"] }
-dotenv = "0.15.0"
-uuid = { version = "1.2.1", features = ["v4", "fast-rng", "macro-diagnostics"] }
-
+uuid = { version = "1.7.0", features = [
+  "v7",
+  "std",
+  "fast-rng",
+  "macro-diagnostics",
+] }
+dotenvy = "0.15.7"
+log = "^0.4"
+migration = { path = "./migration" }
+service = { path = "./service" }
+entity = { path = "./entity" }
 
 [features]
 # by default Tauri runs in production mode

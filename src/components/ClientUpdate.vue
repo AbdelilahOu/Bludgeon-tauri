@@ -2,8 +2,7 @@
 import { useUpdateRouteQueryParams } from "@/composables/useUpdateQuery";
 import { FormControl, FormField, FormItem, FormLabel } from "./ui/form";
 import { useI18n } from "vue-i18n";
-import { onBeforeUnmount, computed, ref } from "vue";
-import type { clientT, updateClientT } from "@/types";
+import { ref } from "vue";
 import { toTypedSchema } from "@vee-validate/zod";
 import UiModalCard from "./ui/UiModalCard.vue";
 import { invoke } from "@tauri-apps/api";
@@ -12,43 +11,66 @@ import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { store } from "@/store";
 import { z } from "zod";
+import type { ClientT } from "@/schemas/client.schema";
+import { useRoute } from "vue-router";
+import { error, info } from "tauri-plugin-log-api";
+import type { Res } from "@/types";
 
 const { t } = useI18n();
 const { updateQueryParams } = useUpdateRouteQueryParams();
+const route = useRoute();
 
-const ClientRow = computed(() => store.getters.getSelectedRow<clientT>());
-
-const isLoading = ref<boolean>(false);
+const isUpdating = ref<boolean>(false);
 
 const clientSchema = toTypedSchema(
   z.object({
-    fullname: z.string().min(2).max(50).default(ClientRow.value.fullname),
-    email: z.string().default(ClientRow.value.email ?? ""),
-    phone: z.string().default(ClientRow.value.phone ?? ""),
-    address: z.string().default(ClientRow.value.address ?? ""),
-  })
+    fullname: z
+      .string()
+      .min(2)
+      .max(50)
+      .default(route.query.fullname as string),
+    email: z.string().default((route.query.email as string) ?? ""),
+    phoneNumber: z.string().default((route.query.phoneNumber as string) ?? ""),
+    address: z.string().default((route.query.address as string) ?? ""),
+    image: z.string().default((route.query.image as string) ?? ""),
+  }),
 );
 
 const form = useForm({
   validationSchema: clientSchema,
 });
 
-const updateTheClient = async (client: updateClientT) => {
-  if (ClientRow.value.id) {
-    try {
-      await invoke("update_client", {
-        client: { ...client, image: ClientRow.value.image },
-        id: ClientRow.value.id,
-      });
-      // toggle refresh
-      updateQueryParams({
-        refresh: "refresh-update-" + Math.random() * 9999,
-      });
-    } catch (error) {
-      console.log(error);
-    } finally {
-      hideModal();
-    }
+const updateTheClient = async (client: ClientT) => {
+  try {
+    await invoke<Res<any>>("update_client", {
+      client: {
+        id: route.query.id,
+        full_name: client.fullname,
+        email: client.email,
+        phone_number: client.phoneNumber,
+        address: client.address,
+        image: client.image,
+      },
+    });
+    //
+    info(
+      `UPDATE CLIENT: ${JSON.stringify({
+        id: route.query.id,
+        full_name: client.fullname,
+        email: client.email,
+        phone_number: client.phoneNumber,
+        address: client.address,
+        image: client.image,
+      })}`,
+    );
+    // toggle refresh
+    updateQueryParams({
+      refresh: "refresh-update-" + Math.random() * 9999,
+    });
+  } catch (err: any) {
+    error("UPDATE CLIENT: " + err.error);
+  } finally {
+    hideModal();
   }
 };
 
@@ -59,8 +81,6 @@ const hideModal = () => {
 const onSubmit = form.handleSubmit((values) => {
   updateTheClient(values);
 });
-
-onBeforeUnmount(() => store.setters.updateStore({ key: "row", value: null }));
 </script>
 
 <template>
@@ -72,11 +92,10 @@ onBeforeUnmount(() => store.setters.updateStore({ key: "row", value: null }));
       <form class="h-full w-full flex flex-col gap-2" @submit="onSubmit">
         <FormField v-slot="{ componentField }" name="fullname">
           <FormItem>
-            <FormLabel>{{ t("c.p.a") }}</FormLabel>
+            <FormLabel>{{ t("g.fields.fullname") }}</FormLabel>
             <FormControl>
               <Input
-                type="text"
-                placeHolder="full name"
+                :placeholder="t('g.fields.fullname')"
                 v-bind="componentField"
               />
             </FormControl>
@@ -84,52 +103,47 @@ onBeforeUnmount(() => store.setters.updateStore({ key: "row", value: null }));
         </FormField>
         <FormField v-slot="{ componentField }" name="email">
           <FormItem>
-            <FormLabel>{{ t("c.p.b") }}</FormLabel>
+            <FormLabel>{{ t("g.fields.email") }}</FormLabel>
             <FormControl>
-              <Input
-                type="text"
-                placeHolder="example@gmail.com"
-                v-bind="componentField"
-              />
+              <Input placeholder="example@gmail.com" v-bind="componentField" />
             </FormControl>
           </FormItem>
         </FormField>
-        <FormField v-slot="{ componentField }" name="phone">
+        <FormField v-slot="{ componentField }" name="phoneNumber">
           <FormItem>
-            <FormLabel>{{ t("c.p.c") }}</FormLabel>
+            <FormLabel>{{ t("g.fields.phone") }}</FormLabel>
             <FormControl>
-              <Input
-                type="text"
-                placeHolder="+2126********"
-                v-bind="componentField"
-              />
+              <Input placeholder="+2126********" v-bind="componentField" />
             </FormControl>
           </FormItem>
         </FormField>
         <FormField v-slot="{ componentField }" name="address">
           <FormItem>
-            <FormLabel>{{ t("c.p.d") }}</FormLabel>
+            <FormLabel>{{ t("g.fields.address") }}</FormLabel>
             <FormControl>
               <Input
-                type="text"
-                placeHolder="Address"
+                :placeholder="t('g.fields.address')"
                 v-bind="componentField"
               />
             </FormControl>
           </FormItem>
         </FormField>
         <div class="w-full grid grid-cols-3 gap-2">
-          <Button :disabled="isLoading" type="submit" class="w-full col-span-2">
-            {{ t("g.b.u", { name: ClientRow.fullname }) }}
-          </Button>
           <Button
             type="button"
             @click="hideModal"
-            :disabled="isLoading"
+            :disabled="isUpdating"
             variant="outline"
           >
             {{ t("g.b.no") }}</Button
           >
+          <Button
+            :disabled="isUpdating"
+            type="submit"
+            class="w-full col-span-2"
+          >
+            {{ t("g.b.u", { name: $route.query.fullname }) }}
+          </Button>
         </div>
       </form>
     </template>

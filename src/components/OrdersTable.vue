@@ -1,126 +1,223 @@
 <script setup lang="ts">
 import { useI18n } from "vue-i18n";
 import UiPagination from "./ui/UiPagination.vue";
-import { Checkbox } from "./ui/checkbox";
 import { RouterLink } from "vue-router";
-import type { orderT } from "@/types";
-import UiIcon from "./ui/UiIcon.vue";
 import { store } from "@/store";
-import { ref } from "vue";
+import type { OrderProductT, OrderT } from "@/schemas/order.schema";
+import { Badge } from "./ui/badge";
+import { Button } from "./ui/button";
+import { cn } from "@/utils/shadcn";
+import { useUpdateRouteQueryParams } from "@/composables/useUpdateQuery";
+import {
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+} from "@/components/ui/hover-card";
+import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
+import { invoke } from "@tauri-apps/api";
+import { error, info } from "tauri-plugin-log-api";
+import { FilePenLine, Printer, Trash2 } from "lucide-vue-next";
 
-defineProps<{ orders: orderT[] }>();
-
+const { updateQueryParams } = useUpdateRouteQueryParams();
 const { t, d } = useI18n();
-const checkedOrders = ref<string[]>([]);
 
-const checkThisOrders = (IsIncluded: boolean, id: string) => {
-  IsIncluded
-    ? checkedOrders.value.push(id)
-    : checkedOrders.value.splice(checkedOrders.value.indexOf(id), 1);
-};
+defineProps<{ orders: OrderT[]; orderProducts: OrderProductT[] }>();
+defineEmits<{
+  (e: "listOrderProducts", id?: string): void;
+  (e: "cancelOrderProducts"): void;
+}>();
 
-const toggleThisOrders = (Order: orderT, name: string) => {
-  store.setters.updateStore({ key: "row", value: Order });
+const toggleThisOrders = (Order: OrderT, name: string) => {
+  updateQueryParams({
+    id: Order.id,
+  });
   store.setters.updateStore({ key: "name", value: name });
   store.setters.updateStore({ key: "show", value: true });
+};
+
+const updateOrderStatus = async (order: any) => {
+  try {
+    await invoke("update_order", {
+      order,
+    });
+    //
+    info(`UPDATE ORDER STATUS: ${JSON.stringify(order)}`);
+    // toggle refresh
+    updateQueryParams({
+      refresh: "refresh-update-" + Math.random() * 9999,
+    });
+  } catch (err: any) {
+    error("UPDATE ORDER STATUS: " + err.error);
+  }
 };
 </script>
 
 <template>
-  <div class="flex flex-col w-full h-full">
-    <table class="table-auto w-full">
-      <thead
-        class="text-xs h-9 font-semibold uppercase text-[rgba(25,23,17,0.6)] bg-gray-300"
-      >
+  <div>
+    <table>
+      <thead>
         <tr>
-          <th class="rounded-l-[4px]"></th>
-          <th
-            v-for="index in [1, 2, 3, 4, 5]"
-            class="p-2 w-fit last:rounded-r-[4px]"
-          >
-            <div class="font-semibold text-left">
-              {{ t(`o.i.feilds[${index}]`) }}
-            </div>
-          </th>
+          <th>{{ t("g.fields.fullname") }}</th>
+          <th>{{ t("g.fields.items") }}</th>
+          <th class="small">{{ t("g.fields.status") }}</th>
+          <th>{{ t("g.fields.date") }}</th>
+          <th>{{ t("g.fields.total") }}</th>
+          <th class="small">{{ t("g.fields.actions") }}</th>
         </tr>
       </thead>
-      <tbody class="text-sm divide-y divide-gray-100">
+      <tbody>
         <tr v-for="(order, index) in orders" v-fade="index" :key="order.id">
           <td class="p-2">
-            <span class="h-full w-full grid">
-              <Checkbox />
-            </span>
-          </td>
-
-          <td class="p-2">
-            <div class="text-left whitespace-nowrap overflow-ellipsis">
-              <RouterLink
-                :to="{
-                  name: 'SellerDetails',
-                  params: { id: order.seller_id },
-                }"
-              >
-                {{ order.seller.name }}
-              </RouterLink>
-            </div>
-          </td>
-          <td class="p-2">
-            <div class="text-left whitespace-nowrap overflow-ellipsis">
-              <span>
-                {{ t("g.plrz.p", { n: order.order_items?.length }) }}
-              </span>
-            </div>
-          </td>
-          <td class="p-2">
-            <div
-              class="text-left font-medium uppercase whitespace-nowrap overflow-ellipsis"
+            <RouterLink
+              class="font-medium"
+              :to="{
+                path: '/suppliers/' + order.supplierId,
+              }"
             >
-              <span
-                v-if="order.status"
-                class="px-2 py-[1px] rounded-full"
-                :class="{
-                  'bg-yellow-300/60 text-yellow-800': order.status == 'pending',
-                  'bg-green-300/60 text-green-800': order.status == 'delivered',
-                  'bg-red-300/60 text-red-800':
-                    order.status != 'pending' && order.status != 'delivered',
-                }"
-              >
-                {{ t(`o.s.${order.status.toLowerCase()}`) }}
-              </span>
-              <span v-else class="text-red-400">No status</span>
-            </div>
+              {{ order.fullname }}
+            </RouterLink>
           </td>
           <td class="p-2">
-            <div class="text-left whitespace-nowrap overflow-ellipsis">
-              <span v-if="!order.created_at" class="text-red-400">No date</span>
-              <span v-else>
-                {{ d(new Date(order.created_at), "long") }}
-              </span>
-            </div>
+            <HoverCard v-if="order.products && order.products > 0">
+              <HoverCardTrigger as-child>
+                <Button
+                  @mouseenter.passive="$emit('listOrderProducts', order.id)"
+                  @mouseleave.passive="$emit('cancelOrderProducts')"
+                  size="sm"
+                  variant="link"
+                  class="underline px-0"
+                >
+                  {{ t("g.plrz.p", { n: order.products }) }}
+                </Button>
+              </HoverCardTrigger>
+              <HoverCardContent class="min-w-[13rem] p-2">
+                <table class="w-full not-default">
+                  <thead>
+                    <tr>
+                      <th v-for="index in 3" :key="index"></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr
+                      v-for="(orderProduct, index) in orderProducts"
+                      :key="index"
+                      class="space-y-1 text-sm flex justify-between w-full items-center"
+                    >
+                      <td class="underline w-1/2">{{ orderProduct.name }}</td>
+                      <td class="w-1/4 text-end">
+                        {{ orderProduct.price }} Dh
+                      </td>
+                      <td class="w-1/4 text-slate-700 text-end">
+                        <i> x{{ orderProduct.quantity }} </i>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </HoverCardContent>
+            </HoverCard>
+            <template v-else>
+              {{ t("g.plrz.p", { n: order.products }) }}
+            </template>
           </td>
           <td class="p-2">
-            <div class="flex justify-start gap-3">
-              <span @click="toggleThisOrders(order, 'OrderDelete')">
-                <UiIcon isStyled name="delete" />
-              </span>
-              <span @click="toggleThisOrders(order, 'OrderUpdate')">
-                <UiIcon isStyled name="edit" />
-              </span>
+            <Popover>
+              <PopoverTrigger as-child>
+                <Badge
+                  variant="outline"
+                  :class="
+                    cn(
+                      'cursor-pointer whitespace-nowrap',
+                      order?.status == 'CANCELED'
+                        ? 'bg-red-100 border-red-500 text-red-900'
+                        : order?.status == 'PENDING'
+                          ? 'bg-yellow-100 border-yellow-500 text-yellow-900'
+                          : order?.status == 'DELIVERED'
+                            ? 'bg-green-100 border-green-500 text-green-900'
+                            : '',
+                    )
+                  "
+                >
+                  {{ t(`g.status.${order.status.toLowerCase()}`) }}
+                </Badge>
+              </PopoverTrigger>
+              <PopoverContent class="w-40 p-1 flex flex-col gap-1">
+                <Button
+                  type="button"
+                  @click="
+                    () =>
+                      updateOrderStatus({
+                        id: order.id,
+                        supplier_id: order.supplierId,
+                        status: 'DELIVERED',
+                      })
+                  "
+                  variant="secondary"
+                  size="sm"
+                  class="border bg-green-100 w-full border-green-500 text-green-900"
+                >
+                  {{ t(`g.status.delivered`) }}
+                </Button>
+                <Button
+                  type="button"
+                  @click="
+                    () =>
+                      updateOrderStatus({
+                        id: order.id,
+                        supplier_id: order.supplierId,
+                        status: 'PENDING',
+                      })
+                  "
+                  variant="secondary"
+                  size="sm"
+                  class="border bg-yellow-100 w-full border-yellow-500 text-yellow-900"
+                >
+                  {{ t(`g.status.pending`) }}
+                </Button>
+                <Button
+                  type="button"
+                  @click="
+                    () =>
+                      updateOrderStatus({
+                        id: order.id,
+                        supplier_id: order.supplierId,
+                        status: 'CANCELED',
+                      })
+                  "
+                  variant="secondary"
+                  size="sm"
+                  class="border bg-red-100 w-full border-red-500 text-red-900"
+                >
+                  {{ t(`g.status.canceled`) }}
+                </Button>
+              </PopoverContent>
+            </Popover>
+          </td>
+          <td class="p-2">
+            {{ order.createdAt ? d(new Date(order.createdAt), "long") : "" }}
+          </td>
+          <td class="p-2">{{ order.total?.toFixed(2) }} DH</td>
+          <td class="p-2">
+            <div class="flex justify-center items-center gap-3">
+              <Trash2
+                @click="toggleThisOrders(order, 'OrderDelete')"
+                :size="22"
+              />
+              <FilePenLine
+                @click="toggleThisOrders(order, 'OrderUpdate')"
+                :size="22"
+              />
               <RouterLink
                 :to="{
-                  name: 'OrdersDetails',
-                  params: { id: order.id },
+                  path: '/orders/' + order.id,
                 }"
               >
-                <UiIcon name="print" />
+                <Printer :size="22" />
               </RouterLink>
             </div>
           </td>
         </tr>
       </tbody>
     </table>
-    <div>
-      <UiPagination />
-    </div>
+    <UiPagination />
   </div>
 </template>

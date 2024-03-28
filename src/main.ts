@@ -13,23 +13,6 @@ const initiVueApp = () => {
     //   firebaseApp: FireApp,
     //   modules: [VueFireAuth()],
     // })
-    .directive("slide", {
-      mounted: (el: HTMLElement, bin: DirectiveBinding) => {
-        useMotion(el, {
-          initial: {
-            opacity: 0,
-            x: 20,
-          },
-          enter: {
-            opacity: 1,
-            x: 0,
-            transition: {
-              delay: (bin.value + 1) * 100,
-            },
-          },
-        });
-      },
-    })
     .directive("fade", {
       mounted: (el: HTMLElement, bin: DirectiveBinding) => {
         useMotion(el, {
@@ -39,7 +22,7 @@ const initiVueApp = () => {
           enter: {
             opacity: 1,
             transition: {
-              delay: (bin.value + 1) * 100,
+              delay: (bin.value + 1) * 30,
             },
           },
         });

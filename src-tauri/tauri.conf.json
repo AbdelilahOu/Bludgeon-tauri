@@ -7,22 +7,11 @@
     "distDir": "../dist"
   },
   "package": {
-    "productName": "client",
+    "productName": "Mahali",
     "version": "0.2.0"
   },
   "tauri": {
     "allowlist": {
-      "shell": {
-        "open": true,
-        "sidecar": true,
-        "scope": [
-          {
-            "name": "./bin/csv-to-excel-go",
-            "sidecar": true,
-            "args": true
-          }
-        ]
-      },
       "dialog": {
         "open": true
       },
@@ -49,7 +38,7 @@
       "deb": {
         "depends": []
       },
-      "externalBin": ["./bin/csv-to-excel-go"],
+      "externalBin": [],
       "icon": [
         "icons/32x32.png",
         "icons/128x128.png",
@@ -57,7 +46,7 @@
         "icons/icon.icns",
         "icons/icon.ico"
       ],
-      "identifier": "whatisthis",
+      "identifier": ".stocker",
       "longDescription": "",
       "macOS": {
         "entitlements": null,
@@ -66,7 +55,7 @@
         "providerShortName": null,
         "signingIdentity": null
       },
-      "resources": ["./data/*"],
+      "resources": [],
       "shortDescription": "",
       "targets": "all",
       "windows": {
@@ -79,15 +68,7 @@
       "csp": "default-src 'self' blob: data: filesystem: ws: wss: http: https: tauri: 'unsafe-eval' 'unsafe-inline'; script-src-elem 'self' https://accounts.google.com 'unsafe-eval' 'unsafe-hashes' 'unsafe-inline'; style-src 'self' https://accounts.google.com 'unsafe-eval' 'unsafe-hashes' 'unsafe-inline';"
     },
     "updater": {
-      "active": true,
-      "endpoints": [
-        "https://gist.githubusercontent.com/AbdelilahOu/1f1b3ee8de5bce510ac90fc74572ff56/raw/00079f0cc1984e3b9b5d93fe5c78ebd12544c2c2/inventoryer-vue-updater.json"
-      ],
-      "dialog": true,
-      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDc3RkU1QTk5NTkxMjhCMzMKUldReml4SlptVnIrZDMvT0tBQjhYdUhlcmZKN2NNbTdrb2NJeVFoWjMrbkFOdTBadzkwM2ZMM0MK",
-      "windows": {
-        "installMode": "quiet"
-      }
+      "active": false
     },
     "windows": [
       {

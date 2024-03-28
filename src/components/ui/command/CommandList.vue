@@ -13,7 +13,10 @@ const emitsAsProps = useEmitAsProps(emits);
   <ComboboxContent
     v-bind="{ ...props, ...emitsAsProps }"
     :class="
-      cn('max-h-[300px] overflow-y-auto overflow-x-hidden', $attrs.class as String ?? '')
+      cn(
+        'max-h-[300px] overflow-y-auto overflow-x-hidden',
+        ($attrs.class as String) ?? '',
+      )
     "
   >
     <div role="presentation">

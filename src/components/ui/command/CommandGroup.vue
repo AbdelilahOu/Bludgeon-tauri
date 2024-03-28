@@ -13,7 +13,9 @@ const props = defineProps<
 <template>
   <ComboboxGroup
     v-bind="props"
-    :class="cn('overflow-hidden p-1 text-foreground', $attrs.class as String ?? '')"
+    :class="
+      cn('overflow-hidden p-1 text-foreground', ($attrs.class as String) ?? '')
+    "
   >
     <ComboboxLabel
       v-if="heading"

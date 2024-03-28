@@ -3,19 +3,19 @@
     "s": "Search",
     "r": {
       "Clients": "Clients",
-      "Sellers": "Sellers",
+      "Suppliers": "Suppliers",
       "Products": "Products",
       "Orders": "Orders",
       "Invoices": "Invoices",
       "Inventory": "Inventory",
-      "Statistics": "Statistics",
+      "Dashboard": "Dashboard",
       "Payment": "Paymentt",
-      "Sittings": "Sittings",
+      "Settings": "Settings",
       "Notifications": "Notifications"
     },
     "b": {
       "no": "Cancel",
-      "c": "Create",
+      "c": "Add",
       "d": "Confirme",
       "u": "Update {name}",
       "a": "Add",
@@ -26,35 +26,58 @@
     "plrz": {
       "i": "no items | {n} item | {n} items",
       "p": "no products | {n} product | {n} products"
+    },
+    "fields": {
+      "fullname": "Full name",
+      "name": "Product name",
+      "email": "E-mail",
+      "phone": "Phoner number",
+      "address": "Address",
+      "actions": "Actions",
+      "description": "Description",
+      "status": "Status",
+      "price": "Price",
+      "date": "Date",
+      "paid": "Avance",
+      "rest": "Rest",
+      "items": "Items",
+      "total": "Total",
+      "inventory": "Inventory",
+      "init-quantity": "Initiale Quantity",
+      "min-quantity": "Minimum Quantity",
+      "quantity": "Quantity",
+      "credit": "Credit",
+      "threshold": "Threshold"
+    },
+    "status": {
+      "delivered": "Delivered",
+      "pending": "Pending",
+      "canceled": "Canceled",
+      "paid": "Paid",
+      "in": "Bought",
+      "out": "Sold"
     }
   },
   "csv": {
     "title": "Upload csv files"
   },
-  "stats": {
+  "dashboard": {
     "i": {
       "title": "Sold and bought items during the last three months",
       "labels": ["BOUGHT", "SOLD"],
       "b3c": "Best clients based on expenses",
-      "b3s": "Best sellers based on expenses"
+      "b3s": "Best suppliers based on expenses"
     },
     "de": {
       "title": "Products baught last three months"
     }
   },
   "c": {
-    "p": {
-      "a": "Full name",
-      "b": "E-mail",
-      "c": "Phone number",
-      "d": "Address"
-    },
     "i": {
-      "addButton": "Add new client",
-      "feilds": ["client name", "e-mail", "phone number", "address", "action"]
+      "addButton": "Add new client"
     },
     "c": {
-      "title": "create a client"
+      "title": "add a client"
     },
     "u": {
       "title": "update client"
@@ -64,49 +87,25 @@
     }
   },
   "s": {
-    "p": {
-      "a": "Full name",
-      "b": "E-mail",
-      "c": "Phone number",
-      "d": "Address"
-    },
     "i": {
-      "addButton": "Add new seller",
-      "feilds": ["seller name", "e-mail", "phone number", "address", "action"]
+      "addButton": "Add new supplier"
     },
     "c": {
-      "title": "create a seller"
+      "title": "add a supplier"
     },
     "u": {
-      "title": "update seller"
+      "title": "update supplier"
     },
     "d": {
-      "title": "are you sure you wanna delete the seller"
+      "title": "are you sure you wanna delete the supplier"
     }
   },
   "p": {
     "i": {
-      "addButton": "Add new product",
-      "feilds": [
-        "id",
-        "product name",
-        "description",
-        "price",
-        "TVA",
-        "inventory",
-        "action"
-      ],
-      "types": ["Product", "Service"]
-    },
-    "p": {
-      "a": "Name",
-      "b": "Price",
-      "c": "TVA",
-      "d": "Initiale Quantity",
-      "e": "Description"
+      "addButton": "Add new product"
     },
     "c": {
-      "title": "create a product"
+      "title": "add a product"
     },
     "u": {
       "title": "UPDATE product"
@@ -117,15 +116,14 @@
   },
   "o": {
     "i": {
-      "addButton": "Add new order",
-      "feilds": ["id", "seller", "items", "STATUS", "Date", "action"]
+      "addButton": "Add new order"
     },
     "c": {
-      "title": "create new order",
+      "title": "add new order",
       "d": {
         "s": {
-          "title": "seller details",
-          "select": "Select a seller"
+          "title": "supplier details",
+          "select": "Select a supplier"
         },
         "o": {
           "title": "order details",
@@ -134,14 +132,14 @@
           "placeholder": ["Product quantity", "New price"]
         }
       },
-      "button": "Create a Orders"
+      "button": "Add a Orders"
     },
     "u": {
       "title": "update order",
       "d": {
         "s": {
-          "title": "seller details",
-          "select": "Select a seller"
+          "title": "supplier details",
+          "select": "Select a supplier"
         },
         "o": {
           "title": "order details",
@@ -155,11 +153,6 @@
       "title": "are you sure you wanna delete the order ",
       "yes": "Confirme",
       "no": "Cancel"
-    },
-    "s": {
-      "delivered": "Delivered",
-      "pending": "Pending",
-      "canceled": "Canceled"
     }
   },
   "od": {
@@ -171,7 +164,7 @@
         "status": "status"
       },
       "s": {
-        "title": "seller details",
+        "title": "supplier details",
         "id": "id",
         "name": "name",
         "phone": "phoner number",
@@ -209,11 +202,10 @@
   },
   "i": {
     "i": {
-      "addButton": "Add new invoice",
-      "feilds": ["id", "client", "items", "total", "status", "Date", "action"]
+      "addButton": "Add new invoice"
     },
     "c": {
-      "title": "create new invoice",
+      "title": "add new invoice",
       "d": {
         "c": {
           "title": "client details",
@@ -226,7 +218,7 @@
           "placeholder": ["Product quantity", "New Price"]
         }
       },
-      "button": "Create a Invoice"
+      "button": "Add a Invoice"
     },
     "u": {
       "title": "update invoice",
@@ -249,24 +241,14 @@
       "no": "Cancel"
     },
     "s": {
-      "delivered": "Delivered",
+      "paid": "Paid",
       "pending": "Pending",
       "canceled": "Canceled"
     }
   },
   "im": {
     "i": {
-      "addButton": "Add to Inventory",
-      "feilds": [
-        "id",
-        "product name",
-        "product price",
-        "sold price",
-        "quantity",
-        "mouvement type",
-        "date",
-        ""
-      ]
+      "addButton": "Add to Inventory"
     },
     "c": {
       "title": "add items to inventory",

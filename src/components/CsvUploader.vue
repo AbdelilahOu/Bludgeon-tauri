@@ -4,12 +4,13 @@ import { uploadCSVfiles } from "@/utils/fs";
 import { useDropZone } from "@vueuse/core";
 import { invoke } from "@tauri-apps/api";
 import { useRoute } from "vue-router";
-import UiIcon from "./ui/UiIcon.vue";
+import { Trash2 } from "lucide-vue-next";
 import { Button } from "./ui/button";
 import { store } from "@/store";
 import { ref } from "vue";
 import { useI18n } from "vue-i18n";
 import UiModalCard from "./ui/UiModalCard.vue";
+import { error } from "tauri-plugin-log-api";
 
 const route = useRoute();
 const { updateQueryParams } = useUpdateRouteQueryParams();
@@ -35,8 +36,8 @@ const upload = async () => {
         csvPath: await uploadCSVfiles({ file: file }),
         table: route.query.table,
       });
-    } catch (error) {
-      console.log(error);
+    } catch (err: any) {
+      error("Error upload csv : " + err.error);
     } finally {
       updateQueryParams({
         refresh: "refresh-upload-" + Math.random() * 9999,
@@ -57,7 +58,7 @@ const upload = async () => {
         <div
           ref="dropZone"
           :class="[
-            'w-full relative rounded-[4px] transition-all duration-200 transform z-50 h-28 border-2 border-dashed border-spacing-4 flex items-center justify-center',
+            'w-full relative rounded-md transition-all duration-200 transform z-50 h-28 border-2 border-dashed border-spacing-4 flex items-center justify-center',
 
             isOverDropZone
               ? 'fill-sky-500 border-sky-500 bg-sky-200'
@@ -79,7 +80,8 @@ const upload = async () => {
       <div v-if="filesData.length" class="w-full h-fit flex flex-col gap-2">
         <div
           v-for="(file, i) in filesData"
-          class="grid grid-cols-[30px_1fr_80px_30px] w-full gap-3 h-10 items-center px-1 rounded-[4px] bg-sky-100 text-black fill-black border-sky-300 border-2"
+          :key="i"
+          class="grid grid-cols-[30px_1fr_80px_30px] w-full gap-3 h-10 items-center px-1 rounded-md bg-sky-100 text-black fill-black border-sky-300 border-2"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -93,9 +95,7 @@ const upload = async () => {
           </svg>
           <span>{{ file.name }}</span>
           <div class="w-full text-end">{{ file.size }} bytes</div>
-          <span @click="filesData.splice(i, 1)">
-            <UiIcon IsStyled name="delete" />
-          </span>
+          <Trash2 class="cursor-pointer" @click="filesData.splice(i, 1)" />
         </div>
         <Button @click="upload">
           {{ t("g.b.csv", { table: route.query.table }) }}

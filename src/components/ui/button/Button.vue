@@ -16,7 +16,9 @@ withDefaults(defineProps<Props>(), {
 <template>
   <component
     :is="as"
-    :class="cn(buttonVariants({ variant, size }), $attrs.class as String ?? '')"
+    :class="
+      cn(buttonVariants({ variant, size }), ($attrs.class as String) ?? '')
+    "
   >
     <slot />
   </component>

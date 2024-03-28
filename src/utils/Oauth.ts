@@ -17,7 +17,7 @@ const openBrowserToConsent = (port: string) => {
       "client_id=852278279567-tunbs9gqq6a3403rrpnvvv564drseu43.apps.googleusercontent.com&" +
       `redirect_uri=http%3A//localhost:${port}&` +
       "scope=email%20profile%20openid&" +
-      "prompt=consent"
+      "prompt=consent",
   );
 };
 
@@ -31,7 +31,7 @@ export const googleSignIn = async (payload: string) => {
   const url = new URL(payload);
   // Get `access_token` from redirect_uri param
   const access_token = new URLSearchParams(url.hash.substring(1)).get(
-    "access_token"
+    "access_token",
   );
 
   if (!access_token) {
